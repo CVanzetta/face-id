@@ -1,0 +1,7 @@
+insightface>=0.7.3
+onnxruntime-gpu>=1.18.0 ; platform_system != "Darwin"
+onnxruntime>=1.18.0      ; platform_system == "Darwin"
+faiss-cpu>=1.8.0
+opencv-python>=4.9.0.80
+numpy>=1.26
+pyyaml>=6.0

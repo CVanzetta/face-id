@@ -1,0 +1,8 @@
+device: 0            # 0 = GPU, -1 = CPU
+det_size: [640, 640] # taille d'inférence du détecteur
+top_k: 1
+threshold_cosine: 0.35   # À CALIBRER (0.30–0.45 en général)
+video:
+  detect_every_n_frames: 5
+  track_max_age: 15       # nb frames avant d'oublier une track
+  smooth_window: 7        # moyenne glissante des scores
