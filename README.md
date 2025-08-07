@@ -389,7 +389,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📖 **Documentation**: Full API docs at `/docs`
 - 🐛 **Issues**: Report bugs on GitHub Issues
 - 💬 **Discussions**: Join GitHub Discussions
-- 📧 **Contact**: [your-email@domain.com]
 
 ## 🙏 Acknowledgments
 
