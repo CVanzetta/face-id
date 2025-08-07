@@ -1,8 +1,68 @@
-device: 0            # 0 = GPU, -1 = CPU
-det_size: [640, 640] # taille d'inférence du détecteur
-top_k: 1
-threshold_cosine: 0.35   # À CALIBRER (0.30–0.45 en général)
+# === Face Recognition Configuration ===
+face_recognition:
+  device: 0                    # 0 = GPU, -1 = CPU
+  det_size: [640, 640]        # Detection input size
+  det_thresh: 0.6             # Face detection threshold
+  model_name: "buffalo_l"     # InsightFace model (buffalo_l, buffalo_m, buffalo_s)
+  
+# === Recognition Thresholds ===
+thresholds:
+  cosine_similarity: 0.35     # Face matching threshold (0.30-0.45)
+  liveness_score: 0.7         # Anti-spoofing threshold
+  face_quality: 0.5           # Minimum face quality score
+  
+# === Video Processing ===
 video:
-  detect_every_n_frames: 5
-  track_max_age: 15       # nb frames avant d'oublier une track
-  smooth_window: 7        # moyenne glissante des scores
+  detect_every_n_frames: 5    # Detection frequency
+  track_max_age: 15           # Max frames before losing track
+  smooth_window: 7            # Temporal smoothing window
+  max_fps: 30                 # Maximum processing FPS
+  
+# === API Configuration ===
+api:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+  cors_origins: ["*"]
+  max_upload_size: 50         # MB
+  supported_formats: ["jpg", "jpeg", "png", "mp4", "avi", "mov"]
+  
+# === Database Configuration ===
+database:
+  type: "faiss"               # "faiss" or "qdrant"
+  faiss:
+    index_path: "storage/database/face_index.faiss"
+    metadata_path: "storage/database/metadata.json"
+    backup_enabled: true
+    backup_interval: 3600     # seconds
+  qdrant:
+    url: "http://localhost:6333"
+    collection_name: "faces"
+    vector_size: 512
+    
+# === Storage ===
+storage:
+  uploads_dir: "storage/uploads"
+  temp_dir: "storage/temp"
+  max_retention_days: 30      # Auto-cleanup after N days
+  
+# === Security & GDPR ===
+security:
+  consent_required: true
+  data_retention_days: 365    # Auto-delete after 1 year
+  anonymize_logs: true
+  secure_headers: true
+  
+# === Performance ===
+performance:
+  max_concurrent_requests: 10
+  batch_size: 32
+  cache_embeddings: true
+  preload_models: true
+
+# === Logging ===
+logging:
+  level: "INFO"              # DEBUG, INFO, WARNING, ERROR
+  file: "logs/face_id.log"
+  max_size: "10MB"
+  backup_count: 5

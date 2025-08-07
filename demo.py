@@ -1,13 +1,30 @@
+#!/usr/bin/env python3
 """
-Script de démonstration du système Face-ID
-Permet de tester rapidement toutes les fonctionnalités
+Script de démonstration du système de reconnaissance faciale
+Utilise la webcam pour une démonstration en temps réel
 """
 
-import os
-import sys
-import subprocess
+import cv2
+import asyncio
+import logging
+import time
 from pathlib import Path
-import argparse
+import sys
+import os
+
+# Ajouter le chemin vers le module principal
+sys.path.insert(0, str(Path(__file__).parent))
+
+from app.core.face_engine import FaceRecognitionEngine
+from app.services.database import create_database_service
+from app.core.config import Config
+
+# Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 def run_command(cmd, description):
     """Exécute une commande et affiche le résultat"""

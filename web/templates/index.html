@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        .upload-area.dragover {
+            border-color: #0d6efd;
+            background-color: #e7f3ff;
+        }
+        .result-card {
+            border-left: 4px solid #28a745;
+            margin-bottom: 15px;
+        }
+        .similarity-bar {
+            height: 10px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, #dc3545 0%, #ffc107 50%, #28a745 100%);
+            position: relative;
+        }
+        .similarity-indicator {
+            position: absolute;
+            width: 3px;
+            height: 12px;
+            background: #000;
+            top: -1px;
+            border-radius: 1px;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        #videoElement {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .face-box {
+            position: absolute;
+            border: 2px solid #28a745;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 12px;
+            background: rgba(40, 167, 69, 0.8);
+            padding: 2px 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-user-check"></i> Face Recognition</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text" id="systemStatus">
+                    <i class="fas fa-circle text-success"></i> System Online
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- GDPR Notice -->
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Privacy Notice:</strong> This system processes biometric data. By using this service, you consent to the processing of your facial features for identification purposes. You have the right to access, modify, or delete your data at any time.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="search-tab" data-bs-toggle="tab" data-bs-target="#search" type="button">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="enroll-tab" data-bs-toggle="tab" data-bs-target="#enroll" type="button">
+                    <i class="fas fa-user-plus"></i> Enroll
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="verify-tab" data-bs-toggle="tab" data-bs-target="#verify" type="button">
+                    <i class="fas fa-user-check"></i> Verify
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="live-tab" data-bs-toggle="tab" data-bs-target="#live" type="button">
+                    <i class="fas fa-video"></i> Live Search
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="manage-tab" data-bs-toggle="tab" data-bs-target="#manage" type="button">
+                    <i class="fas fa-users"></i> Manage
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-4" id="mainTabContent">
+            <!-- Search Tab -->
+            <div class="tab-pane fade show active" id="search" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-search"></i> Search for Faces</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="upload-area" onclick="document.getElementById('searchFile').click()">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <h5>Upload Image to Search</h5>
+                                    <p class="text-muted">Drag & drop or click to select</p>
+                                    <input type="file" id="searchFile" accept="image/*" style="display: none;">
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <label for="searchTopK" class="form-label">Number of results:</label>
+                                    <input type="range" class="form-range" min="1" max="20" value="10" id="searchTopK">
+                                    <span id="searchTopKValue">10</span>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <label for="searchThreshold" class="form-label">Similarity threshold:</label>
+                                    <input type="range" class="form-range" min="0" max="1" step="0.05" value="0.35" id="searchThreshold">
+                                    <span id="searchThresholdValue">0.35</span>
+                                </div>
+                                
+                                <button class="btn btn-primary mt-3" id="searchBtn" disabled>
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-list"></i> Search Results</h5>
+                            </div>
+                            <div class="card-body" id="searchResults">
+                                <p class="text-muted text-center">Upload an image to search for matches</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enroll Tab -->
+            <div class="tab-pane fade" id="enroll" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-user-plus"></i> Enroll New Person</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="enrollForm" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="enrollName" class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="enrollName" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="enrollSource" class="form-label">Data Source</label>
+                                        <select class="form-select" id="enrollSource">
+                                            <option value="upload">Direct Upload</option>
+                                            <option value="instagram">Instagram Export</option>
+                                            <option value="facebook">Facebook Export</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="enrollTags" class="form-label">Tags</label>
+                                        <input type="text" class="form-control" id="enrollTags" placeholder="employee, visitor, vip">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="enrollNotes" class="form-label">Notes</label>
+                                        <textarea class="form-control" id="enrollNotes" rows="3"></textarea>
+                                    </div>
+                                    
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="enrollConsent" required>
+                                        <label class="form-check-label" for="enrollConsent">
+                                            I confirm that I have explicit consent to process this person's biometric data
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="upload-area" onclick="document.getElementById('enrollFiles').click()">
+                                        <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                                        <h5>Upload Photos</h5>
+                                        <p class="text-muted">Select multiple images (3-10 recommended)</p>
+                                        <input type="file" id="enrollFiles" accept="image/*" multiple style="display: none;">
+                                    </div>
+                                    
+                                    <div id="enrollPreview" class="mt-3"></div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-user-plus"></i> Enroll Person
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verify Tab -->
+            <div class="tab-pane fade" id="verify" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-user-check"></i> Verify Two Images</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6>First Image</h6>
+                                <div class="upload-area" onclick="document.getElementById('verifyFile1').click()">
+                                    <i class="fas fa-image fa-2x text-muted mb-2"></i>
+                                    <p>Upload first image</p>
+                                    <input type="file" id="verifyFile1" accept="image/*" style="display: none;">
+                                </div>
+                                <div id="verifyPreview1" class="mt-2"></div>
+                            </div>
+                            
+                            <div class="col-md-2 text-center d-flex align-items-center justify-content-center">
+                                <div>
+                                    <i class="fas fa-arrows-left-right fa-2x text-muted mb-2"></i>
+                                    <br>
+                                    <button class="btn btn-primary" id="verifyBtn" disabled>
+                                        <i class="fas fa-check"></i> Verify
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-5">
+                                <h6>Second Image</h6>
+                                <div class="upload-area" onclick="document.getElementById('verifyFile2').click()">
+                                    <i class="fas fa-image fa-2x text-muted mb-2"></i>
+                                    <p>Upload second image</p>
+                                    <input type="file" id="verifyFile2" accept="image/*" style="display: none;">
+                                </div>
+                                <div id="verifyPreview2" class="mt-2"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="verifyResults" class="mt-4"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Search Tab -->
+            <div class="tab-pane fade" id="live" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-video"></i> Live Face Recognition</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="video-container">
+                                    <video id="videoElement" autoplay muted playsinline></video>
+                                    <canvas id="videoOverlay" class="video-overlay"></canvas>
+                                </div>
+                                
+                                <div class="mt-3 text-center">
+                                    <button class="btn btn-success" id="startCameraBtn">
+                                        <i class="fas fa-play"></i> Start Camera
+                                    </button>
+                                    <button class="btn btn-danger" id="stopCameraBtn" style="display: none;">
+                                        <i class="fas fa-stop"></i> Stop Camera
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6><i class="fas fa-users"></i> Live Detections</h6>
+                                    </div>
+                                    <div class="card-body" id="liveDetections">
+                                        <p class="text-muted">Start camera to see live detections</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manage Tab -->
+            <div class="tab-pane fade" id="manage" role="tabpanel">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5><i class="fas fa-users"></i> Manage Persons</h5>
+                        <button class="btn btn-outline-primary btn-sm" id="refreshPersonsBtn">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped" id="personsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Source</th>
+                                        <th>Faces</th>
+                                        <th>Enrolled</th>
+                                        <th>Tags</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="personsTableBody">
+                                    <tr>
+                                        <td colspan="6" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3" id="loadingText">Processing...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,7 +1,36 @@
+# Core ML & Computer Vision
 insightface>=0.7.3
 onnxruntime-gpu>=1.18.0 ; platform_system != "Darwin"
 onnxruntime>=1.18.0      ; platform_system == "Darwin"
 faiss-cpu>=1.8.0
 opencv-python>=4.9.0.80
 numpy>=1.26
+
+# Web Framework & API
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+jinja2>=3.1.2
+aiofiles>=23.2.0
+
+# Data & Storage
+pydantic>=2.5.0
+sqlalchemy>=2.0.0
+alembic>=1.13.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# Utils & Config
 pyyaml>=6.0
+pillow>=10.1.0
+python-magic>=0.4.27
+tqdm>=4.66.0
+
+# Optional: Vector Database
+# qdrant-client>=1.7.0
+
+# Development
+pytest>=7.4.0
+black>=23.11.0
+flake8>=6.1.0
+mypy>=1.7.0
